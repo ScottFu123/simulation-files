@@ -1,0 +1,222 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      particleProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         true;
+    transient       yes;
+    cellValueSourceCorrection off;
+
+    maxCo           1.0;
+
+    interpolationSchemes
+    {
+        rho.air         cell;
+        U.air           cellPoint;
+        mu.air          cell;
+        alpha.air       cell;
+    }
+
+    averagingMethod dual;
+
+    integrationSchemes
+    {
+        U               Euler;
+    }
+
+    sourceTerms
+    {
+        schemes
+        {
+            U           semiImplicit 1;
+        }
+    }
+}
+
+constantProperties
+{
+    rho0            1000;
+    alphaMax        0.9;
+}
+
+subModels
+{
+    particleForces
+    {
+        ErgunWenYuDrag
+        {
+            alphac alpha.air;
+        }
+
+        gravity;
+    }
+
+    injectionModels
+    {
+        model1
+        {
+            type            patchInjection;
+            massTotal       0.0002;
+            SOI             0;
+            parcelBasisType mass;
+            patchName       inletone;
+            duration        1.5;
+            parcelsPerSecond 3000;
+            U0              (0 0 0.6);
+            flowRateProfile constant 1;
+	    sizeDistribution
+            {
+
+                type        fixedValue;
+                fixedValueDistribution
+                {
+                    value   5e-6;
+                }
+            }
+        }
+        
+        model2
+        {
+            type            patchInjection;
+            massTotal       0.0002;
+            SOI             0;
+            parcelBasisType mass;
+            patchName       inlettwo;
+            duration        1.5;
+            U0              (0 0 0.6);
+            flowRateProfile constant 1;
+            parcelsPerSecond 3000;  
+	    sizeDistribution
+            {
+                type        fixedValue;
+                fixedValueDistribution
+                {
+                    value   5e-6;
+                }
+            }
+        }
+
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel localInteraction;
+
+    localInteractionCoeffs
+    {
+        patches
+        (
+	    rock
+            {
+                type rebound;
+                e    0.0;
+                mu   1.0;
+            }
+            inletone
+            {
+                type escape;
+            }
+            inlettwo
+            {
+                type escape;
+            }
+            outlet
+            {
+                type rebound;
+                e    0.0;
+                mu   1.0;
+            }
+        );
+    }
+
+    heatTransferModel none;
+
+    surfaceFilmModel none;
+
+    packingModel     none;
+
+    explicitCoeffs
+    {
+        particleStressModel
+        {
+            type HarrisCrighton;
+            alphaPacked 0.6;
+            pSolid 10.0;
+            beta 2.0;
+            eps 1.0e-7;
+        }
+        correctionLimitingMethod
+        {
+            type absolute;
+            e 0.9;
+        }
+    }
+
+    implicitCoeffs
+    {
+        alphaMin 0.0001;
+        rhoMin 1.0;
+        applyLimiting true;
+        applyGravity false;
+        particleStressModel
+        {
+            type HarrisCrighton;
+            alphaPacked 0.6;
+            pSolid 5.0;
+            beta 2.0;
+            eps 1.0e-2;
+        }
+    }
+
+    dampingModel relaxation;
+
+    relaxationCoeffs
+    {
+        timeScaleModel
+        {
+            type nonEquilibrium;
+            alphaPacked 0.58;
+            e 0.9;
+        }
+    }
+
+    isotropyModel stochastic;
+
+    stochasticCoeffs
+    {
+        timeScaleModel
+        {
+            type isotropic;
+            alphaPacked 0.6;
+            e 0.9;
+        }
+    }
+
+    stochasticCollisionModel none;
+
+    radiation off;
+
+    collisionModel none;
+}
+
+
+cloudFunctions
+{}
+
+
+// ************************************************************************* //

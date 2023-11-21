@@ -1,0 +1,3 @@
+DpmpimpleFoam.C
+
+EXE = $(FOAM_APPBIN)/DpmpimpleFoam
